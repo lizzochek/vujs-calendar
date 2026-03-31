@@ -1,0 +1,115 @@
+.calendar-shell {
+  padding: 8px 42px 16px;
+  color: #1e3a63;
+  min-height: 92vh;
+}
+
+.toolbar-top,
+.toolbar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 400;
+  color: #2f5fa5;
+}
+
+.view-switch,
+.left-buttons {
+  display: flex;
+}
+
+.calendar-btn {
+  border: 1px solid #c8d7ef;
+  background: #f7fbff;
+  color: #54719b;
+  font-size: 14px;
+  line-height: 1;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.calendar-btn + .calendar-btn {
+  border-left: 0;
+}
+
+.calendar-btn.is-active {
+  color: #2267c7;
+  background: #e8f1ff;
+}
+
+.period-title {
+  flex: 1;
+  text-align: center;
+  font-size: 40px;
+  color: #2f5fa5;
+}
+
+.spacer {
+  width: 170px;
+}
+
+/* vue-simple-calendar theme overrides */
+.theme-default .cv-header-day {
+  background: #eef4ff;
+  border-color: #d8e5fb;
+  color: #60779d;
+  font-size: 13px;
+  min-height: 46px;
+}
+
+.theme-default .cv-week {
+  border-color: #d8e5fb;
+  min-height: 128px;
+}
+
+.theme-default .cv-day,
+.theme-default .cv-weeknumber {
+  border-color: #d8e5fb;
+}
+
+.theme-default .cv-day {
+  padding: 6px 8px;
+}
+
+.cv-wrapper {
+  min-height: 78vh;
+}
+
+.cv-weeks {
+  min-height: 74vh;
+}
+
+.theme-default .cv-day-number {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  text-align: right;
+  font-size: 22px;
+  padding: 14px 14px 4px 0;
+}
+
+.theme-default .cv-day.today {
+  background: #edf4ff;
+}
+
+.theme-default .cv-day.outsideOfMonth {
+  background: #f7faff;
+}
+
+.theme-default .cv-item {
+  background: #2f80ed;
+  border-color: #2b75d8;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 15px;
+  line-height: 1.35;
+  padding: 8px 10px;
+  min-height: 34px;
+  margin-top: 30px;
+}
