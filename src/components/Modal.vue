@@ -52,11 +52,36 @@
       </div>
 
       <textarea
-        :value="selectedEvent?.originalItem?.description"
-        @input="(e) => (e.target.value ? (selectedEvent.description = e.target.value) : '')"
+        :value="selectedEvent?.description ?? selectedEvent?.originalItem?.description ?? ''"
+        @input="(e) => (selectedEvent.description = e.target.value)"
         placeholder="Take my PC"
-        class="w-full border-b border-gray-300 mb-8 outline-none resize-none bg-transparent text-black h-10"
+        class="w-full border-b border-gray-300 mb-6 outline-none resize-none bg-transparent text-black h-10"
       />
+
+      <div class="mb-8 flex items-center gap-3">
+        <p class="text-xs text-gray-500 m-0">Color</p>
+        <label class="relative inline-flex h-10 w-10 shrink-0 cursor-pointer rounded-full border-2 border-gray-200 shadow-sm overflow-hidden hover:ring-2 hover:ring-gray-300 hover:ring-offset-1">
+          <input
+            type="color"
+            class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            :value="effectiveColor"
+            aria-label="Event color"
+            @input="setColor($event.target.value)"
+          />
+          <span
+            class="pointer-events-none block h-full w-full rounded-full"
+            :style="{ backgroundColor: effectiveColor }"
+          />
+        </label>
+      </div>
+
+      <p
+        v-if="saveError"
+        class="text-red-600 text-sm mb-4 leading-snug"
+        role="alert"
+      >
+        {{ saveError }}
+      </p>
 
       <div class="flex justify-between items-center">
         <button
@@ -80,6 +105,9 @@
 
 <script setup>
 import { computed } from "vue"
+
+const DEFAULT_EVENT_COLOR = "#2f80ed"
+
 const props = defineProps({
   showModal: {
     type: Boolean,
@@ -93,9 +121,22 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  saveError: {
+    type: String,
+    default: "",
+  },
 })
 
-const emit = defineEmits(["closeModal", "saveEvent"])
+defineEmits(["closeModal", "saveEvent"])
+
+const effectiveColor = computed(() => {
+  const c = props.selectedEvent?.color
+  return typeof c === "string" && /^#/.test(c) ? c : DEFAULT_EVENT_COLOR
+})
+
+function setColor(hex) {
+  if (props.selectedEvent) props.selectedEvent.color = hex
+}
 
 function getLocalDateTime(dateString) {
   const d = new Date(dateString)
