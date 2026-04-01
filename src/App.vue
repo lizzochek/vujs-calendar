@@ -1,5 +1,6 @@
 <script setup>
-import { computed, ref } from "vue"
+import { computed, ref, onBeforeMount } from "vue"
+import { useStore } from "vuex"
 import { CalendarMath } from "vue-simple-calendar"
 import Modal from "./components/Modal.vue"
 import CalendarWeekView from "./components/CalendarWeekView.vue"
@@ -15,100 +16,22 @@ import {
 import "vue-simple-calendar/dist/vue-simple-calendar.css"
 import "vue-simple-calendar/dist/css/default.css"
 import "./assets/tailwind.css"
-import { createEventDate, isAllDayEvent } from "./utils/calendarHelpers"
+import { isAllDayEvent } from "./utils/calendarHelpers"
 import { dayFromWeekOrDayGridPoint, roundToStepMinutes } from "./utils/dragDropHelpers"
 import { calendarItemStyleString } from "./utils/eventStyles"
 import { monthViewSameTimeColumnStyle, sameTimeColumnMeta } from "./utils/monthViewSameTimeColumns"
 import { validateEventForSave } from "./utils/eventValidation"
 
+const store = useStore()
+
 const showDate = ref(new Date())
 const activeView = ref("month")
 
-const seedDate = new Date()
-const seedYear = seedDate.getFullYear()
-const seedMonth = seedDate.getMonth()
-
-const calendarItems = ref([
-  {
-    id: "e1",
-    startDate: createEventDate(seedYear, seedMonth, 4, 14, 0),
-    endDate: createEventDate(seedYear, seedMonth, 4, 15, 30),
-    title: "Morning Meeting",
-    description: "We will discuss the project progress and the upcoming tasks.",
-    color: "#2f80ed",
-  },
-  {
-    id: "e2",
-    startDate: createEventDate(seedYear, seedMonth, 4, 14, 0),
-    endDate: createEventDate(seedYear, seedMonth, 4, 15, 0),
-    title: "Project Discussion",
-    description: "We will discuss the project progress and the upcoming tasks.",
-    color: "#9b59b6",
-  },
-  {
-    id: "e3",
-    startDate: createEventDate(seedYear, seedMonth, 5, 8, 30),
-    endDate: createEventDate(seedYear, seedMonth, 5, 9, 30),
-    title: "Coffee with Client",
-    description: "We will discuss the project progress and the upcoming tasks.",
-    color: "#27ae60",
-  },
-  {
-    id: "e4",
-    startDate: createEventDate(seedYear, seedMonth, 14, 12, 15),
-    endDate: createEventDate(seedYear, seedMonth, 14, 13, 0),
-    title: "Lunch Break",
-    description: "We will discuss the project progress and the upcoming tasks.",
-    color: "#f39c12",
-  },
-  {
-    id: "e5",
-    startDate: createEventDate(seedYear, seedMonth, 20, 16, 0),
-    endDate: createEventDate(seedYear, seedMonth, 20, 17, 30),
-    title: "Afternoon Review",
-    description: "We will discuss the project progress and the upcoming tasks.",
-    color: "#1abc9c",
-  },
-  {
-    id: "e6",
-    startDate: createEventDate(seedYear, seedMonth, 28, 10, 0),
-    endDate: createEventDate(seedYear, seedMonth, 28, 10, 45),
-    title: "Stand-up",
-    description: "We will discuss the project progress and the upcoming tasks.",
-    color: "#e74c3c",
-  },
-  {
-    id: "e7",
-    startDate: createEventDate(seedYear, seedMonth, 29, 18, 0),
-    endDate: createEventDate(seedYear, seedMonth, 29, 20, 0),
-    title: "Team Dinner",
-    description: "We will discuss the project progress and the upcoming tasks.",
-    color: "#e91e8c",
-  },
-  {
-    id: "e8",
-    startDate: createEventDate(seedYear, seedMonth, 1, 0, 0),
-    endDate: createEventDate(seedYear, seedMonth, 2, 0, 0),
-    title: "Day off",
-    description: "No work today.",
-    color: "#607d8b",
-  },
-])
-
-const sortedCalendarItems = computed(() => {
-  return [...calendarItems.value].sort((a, b) => {
-    const aAllDay = isAllDayEvent(a)
-    const bAllDay = isAllDayEvent(b)
-    if (aAllDay !== bAllDay) return aAllDay ? -1 : 1
-
-    const aNorm = CalendarMath.normalizeItem(a)
-    const bNorm = CalendarMath.normalizeItem(b)
-    const aStart = aNorm.startDate.getTime()
-    const bStart = bNorm.startDate.getTime()
-    if (aStart !== bStart) return aStart - bStart
-    return aNorm.endDate.getTime() - bNorm.endDate.getTime()
-  })
+onBeforeMount(() => {
+  store.dispatch("initialiseStore")
 })
+
+const sortedCalendarItems = computed(() => store.getters.sortedCalendarItems)
 
 const monthViewStartingDayOfWeek = 0
 
@@ -204,12 +127,12 @@ function handleItemDrop(calendarItem, date) {
     newEnd = new Date(newStart.getTime() + diffMs)
   }
 
-  const idx = calendarItems.value.findIndex((item) => item.id === id)
+  const idx = store.state.calendarItems.findIndex((item) => item.id === id)
   if (idx === -1) return
-  const updated = { ...calendarItems.value[idx], startDate: newStart }
+  const updated = { ...store.state.calendarItems[idx], startDate: newStart }
   if (newEnd) updated.endDate = newEnd
   else delete updated.endDate
-  calendarItems.value.splice(idx, 1, updated)
+  store.dispatch("replaceCalendarItem", { index: idx, item: updated })
 }
 
 function onWeekDayDragStart(e, item) {
@@ -222,9 +145,9 @@ function onHourGridDrop(e, dayHint) {
   e.stopPropagation()
   const id = e.dataTransfer.getData("text/plain")
   if (!id) return
-  const idx = calendarItems.value.findIndex((x) => String(x.id) === id)
+  const idx = store.state.calendarItems.findIndex((x) => String(x.id) === id)
   if (idx === -1) return
-  const stored = calendarItems.value[idx]
+  const stored = store.state.calendarItems[idx]
   const grid = e.target.closest(".hour-grid")
   if (!grid) return
   const day =
@@ -240,7 +163,10 @@ function onHourGridDrop(e, dayHint) {
   const newStart = new Date(dayOnly)
   newStart.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0)
   const newEnd = new Date(newStart.getTime() + durationMs)
-  calendarItems.value.splice(idx, 1, { ...stored, startDate: newStart, endDate: newEnd })
+  store.dispatch("replaceCalendarItem", {
+    index: idx,
+    item: { ...stored, startDate: newStart, endDate: newEnd },
+  })
 }
 
 function onAllDayRowDrop(e, dayHint) {
@@ -248,9 +174,9 @@ function onAllDayRowDrop(e, dayHint) {
   e.stopPropagation()
   const id = e.dataTransfer.getData("text/plain")
   if (!id) return
-  const idx = calendarItems.value.findIndex((x) => String(x.id) === id)
+  const idx = store.state.calendarItems.findIndex((x) => String(x.id) === id)
   if (idx === -1) return
-  const stored = calendarItems.value[idx]
+  const stored = store.state.calendarItems[idx]
   const day =
     dayFromWeekOrDayGridPoint(e) ||
     (dayHint instanceof Date ? dayHint : dayHint != null ? new Date(dayHint) : null)
@@ -262,12 +188,18 @@ function onAllDayRowDrop(e, dayHint) {
   if (isAllDayEvent(stored)) {
     const newStart = new Date(target)
     const newEnd = new Date(newStart.getTime() + durationMs)
-    calendarItems.value.splice(idx, 1, { ...stored, startDate: newStart, endDate: newEnd })
+    store.dispatch("replaceCalendarItem", {
+      index: idx,
+      item: { ...stored, startDate: newStart, endDate: newEnd },
+    })
   } else {
     const newStart = new Date(target)
     const newEnd = CalendarMath.addDays(newStart, 1)
     newEnd.setHours(0, 0, 0, 0)
-    calendarItems.value.splice(idx, 1, { ...stored, startDate: newStart, endDate: newEnd })
+    store.dispatch("replaceCalendarItem", {
+      index: idx,
+      item: { ...stored, startDate: newStart, endDate: newEnd },
+    })
   }
 }
 
@@ -364,22 +296,26 @@ function saveEvent() {
   }
   saveError.value = ""
 
-  const idx = calendarItems.value.findIndex((e) => e.id === selectedEvent.value.id)
+  const idx = store.state.calendarItems.findIndex((e) => e.id === selectedEvent.value.id)
 
   const title = (selectedEvent.value.title ?? "").trim()
 
   if (idx !== -1) {
-    calendarItems.value.splice(idx, 1, {
-      id: selectedEvent.value.id,
-      startDate: selectedEvent.value.startDate,
-      endDate: selectedEvent.value.endDate,
-      title,
-      description: selectedEvent.value.description || selectedEvent.value.originalItem?.description,
-      color: selectedEvent.value.color || DEFAULT_EVENT_COLOR,
+    store.dispatch("replaceCalendarItem", {
+      index: idx,
+      item: {
+        id: selectedEvent.value.id,
+        startDate: selectedEvent.value.startDate,
+        endDate: selectedEvent.value.endDate,
+        title,
+        description:
+          selectedEvent.value.description || selectedEvent.value.originalItem?.description,
+        color: selectedEvent.value.color || DEFAULT_EVENT_COLOR,
+      },
     })
   } else {
-    calendarItems.value.push({
-      id: `e${calendarItems.value.length + 1}`,
+    store.dispatch("pushCalendarItem", {
+      id: `e${store.state.calendarItems.length + 1}`,
       startDate: selectedEvent.value.startDate,
       endDate: selectedEvent.value.endDate,
       title,
@@ -391,10 +327,10 @@ function saveEvent() {
 }
 
 function deleteEvent() {
-  const idx = calendarItems.value.findIndex((e) => e.id === selectedEvent.value.id)
+  const idx = store.state.calendarItems.findIndex((e) => e.id === selectedEvent.value.id)
 
   if (idx !== -1) {
-    calendarItems.value.splice(idx, 1)
+    store.dispatch("removeCalendarItem", idx)
   }
   closeModal()
 }
