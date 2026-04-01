@@ -25,42 +25,49 @@ const calendarItems = ref([
     startDate: eventDate(year, month, 4, 14, 0),
     endDate: eventDate(year, month, 4, 15, 30),
     title: "Morning Meeting",
+    description: "We will discuss the project progress and the upcoming tasks.",
   },
   {
     id: "e2",
     startDate: eventDate(year, month, 4, 14, 0),
     endDate: eventDate(year, month, 4, 15, 0),
     title: "Project Discussion",
+    description: "We will discuss the project progress and the upcoming tasks.",
   },
   {
     id: "e3",
     startDate: eventDate(year, month, 5, 8, 30),
     endDate: eventDate(year, month, 5, 9, 30),
     title: "Coffee with Client",
+    description: "We will discuss the project progress and the upcoming tasks.",
   },
   {
     id: "e4",
     startDate: eventDate(year, month, 14, 12, 15),
     endDate: eventDate(year, month, 14, 13, 0),
     title: "Lunch Break",
+    description: "We will discuss the project progress and the upcoming tasks.",
   },
   {
     id: "e5",
     startDate: eventDate(year, month, 20, 16, 0),
     endDate: eventDate(year, month, 20, 17, 30),
     title: "Afternoon Review",
+    description: "We will discuss the project progress and the upcoming tasks.",
   },
   {
     id: "e6",
     startDate: eventDate(year, month, 28, 10, 0),
     endDate: eventDate(year, month, 28, 10, 45),
     title: "Stand-up",
+    description: "We will discuss the project progress and the upcoming tasks.",
   },
   {
     id: "e7",
     startDate: eventDate(year, month, 29, 18, 0),
     endDate: eventDate(year, month, 29, 20, 0),
     title: "Team Dinner",
+    description: "We will discuss the project progress and the upcoming tasks.",
   },
 ])
 
@@ -110,12 +117,26 @@ const modalPosition = ref({ top: 0, left: 0 })
 function openEvent(item, e) {
   selectedEvent.value = { ...item }
 
-  // 📍 position near clicked element
   const rect = e.currentTarget.getBoundingClientRect()
+  const modalWidth = 300
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+
+  const top = rect.bottom + 10 + window.scrollY
+
+  let left = rect.left + window.scrollX + 10
+
+  if (left + modalWidth > viewportWidth) {
+    left = rect.right - modalWidth - window.scrollX - 10
+  }
+
+  if (left < 0) {
+    left = 0
+  }
 
   modalPosition.value = {
-    top: rect.top + window.scrollY + rect.height + 10,
-    left: rect.left + window.scrollX,
+    top: top,
+    left: left,
   }
 
   showModal.value = true
@@ -130,9 +151,14 @@ function saveEvent() {
   const idx = calendarItems.value.findIndex((e) => e.id === selectedEvent.value.id)
 
   if (idx !== -1) {
-    calendarItems.value.splice(idx, 1, selectedEvent.value)
+    calendarItems.value.splice(idx, 1, {
+      id: selectedEvent.value.id,
+      startDate: selectedEvent.value.startDate,
+      endDate: selectedEvent.value.endDate,
+      title: selectedEvent.value.title,
+      description: selectedEvent.value.description || selectedEvent.value.originalItem.description,
+    })
   }
-
   closeModal()
 }
 </script>

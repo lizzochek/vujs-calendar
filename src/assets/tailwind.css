@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 .calendar-shell {
   padding: 8px 42px 16px;
   color: #1e3a63;
@@ -14,7 +16,7 @@
 
 .title {
   margin: 0;
-  font-size: 32px;
+  font-size: 32px !important;
   font-weight: 400;
   color: #2f5fa5;
 }
@@ -46,7 +48,7 @@
 .period-title {
   flex: 1;
   text-align: center;
-  font-size: 40px;
+  font-size: 30px !important;
   color: #2f5fa5;
 }
 
@@ -54,7 +56,6 @@
   width: 170px;
 }
 
-/* vue-simple-calendar theme overrides */
 .theme-default .cv-header-day {
   background: #eef4ff;
   border-color: #d8e5fb;
