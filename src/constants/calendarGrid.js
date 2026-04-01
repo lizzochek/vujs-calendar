@@ -1,0 +1,11 @@
+export const DEFAULT_EVENT_COLOR = "#2f80ed"
+
+export const GRID_START_MINUTES = 12 * 60
+export const GRID_END_MINUTES = 23 * 60
+export const SLOT_MINUTES = 60
+export const SLOT_COUNT = (GRID_END_MINUTES - GRID_START_MINUTES) / SLOT_MINUTES
+export const SLOT_HEIGHT = 54
+export const DAY_GRID_HEIGHT = SLOT_COUNT * SLOT_HEIGHT
+export const PX_PER_MINUTE = SLOT_HEIGHT / SLOT_MINUTES
+export const CURRENT_TIME_LINE_OFFSET_PX = 7
+export const TIME_COL_WIDTH = 86
