@@ -114,29 +114,33 @@ const showModal = ref(false)
 const selectedEvent = ref(null)
 const modalPosition = ref({ top: 0, left: 0 })
 
-function openEvent(item, e) {
+function openEvent(date, item, e) {
   selectedEvent.value = { ...item }
+  if (!selectedEvent.value?.originalItem?.startDate) selectedEvent.value.startDate = date
+  if (!selectedEvent.value?.originalItem?.endDate) selectedEvent.value.endDate = date
 
-  const rect = e.currentTarget.getBoundingClientRect()
-  const modalWidth = 300
-  const viewportWidth = window.innerWidth
-  const viewportHeight = window.innerHeight
+  if (e.currentTarget) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const modalWidth = 300
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
 
-  const top = rect.bottom + 10 + window.scrollY
+    const top = rect.bottom + 10 + window.scrollY
 
-  let left = rect.left + window.scrollX + 10
+    let left = rect.left + window.scrollX + 10
 
-  if (left + modalWidth > viewportWidth) {
-    left = rect.right - modalWidth - window.scrollX - 10
-  }
+    if (left + modalWidth > viewportWidth) {
+      left = rect.right - modalWidth - window.scrollX - 10
+    }
 
-  if (left < 0) {
-    left = 0
-  }
+    if (left < 0) {
+      left = 0
+    }
 
-  modalPosition.value = {
-    top: top,
-    left: left,
+    modalPosition.value = {
+      top: top,
+      left: left,
+    }
   }
 
   showModal.value = true
@@ -158,6 +162,23 @@ function saveEvent() {
       title: selectedEvent.value.title,
       description: selectedEvent.value.description || selectedEvent.value.originalItem.description,
     })
+  } else {
+    calendarItems.value.push({
+      id: `e${calendarItems.value.length + 1}`,
+      startDate: selectedEvent.value.startDate,
+      endDate: selectedEvent.value.endDate,
+      title: selectedEvent.value.title,
+      description: selectedEvent.value.description,
+    })
+  }
+  closeModal()
+}
+
+function deleteEvent() {
+  const idx = calendarItems.value.findIndex((e) => e.id === selectedEvent.value.id)
+
+  if (idx !== -1) {
+    calendarItems.value.splice(idx, 1)
   }
   closeModal()
 }
@@ -170,8 +191,9 @@ function saveEvent() {
     :modalPosition="modalPosition"
     @saveEvent="saveEvent"
     @closeModal="closeModal"
+    @deleteEvent="deleteEvent"
   />
-  <div class="calendar-shell">
+  <div class="calendar-shell mt-4">
     <CalendarView
       :show-date="showDate"
       :items="calendarItems"
@@ -179,7 +201,8 @@ function saveEvent() {
       :display-period-count="1"
       :enableDragDrop="true"
       @drop-on-date="handleItemDrop"
-      @click-item="(item, e) => openEvent(item, e)"
+      @click-item="(item, e) => openEvent(_, item, e)"
+      @click-date="(date, items, event) => openEvent(date, items, event)"
       class="theme-default"
     >
       <template #header="{ headerProps }">

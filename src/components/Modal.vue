@@ -23,10 +23,9 @@
       <input
         v-model="selectedEvent.title"
         class="w-full border-b border-gray-300 pb-2 mb-6 outline-none text-gray-700 bg-transparent"
-        placeholder="Event title"
+        placeholder="Work meeting"
         type="text"
       />
-
       <div class="flex flex-col gap-4 mb-6">
         <div class="flex items-center justify-between border-b border-gray-300 pb-3">
           <input
@@ -53,14 +52,15 @@
       </div>
 
       <textarea
-        :value="selectedEvent.originalItem.description"
+        :value="selectedEvent?.originalItem?.description"
         @input="(e) => (e.target.value ? (selectedEvent.description = e.target.value) : '')"
+        placeholder="Take my PC"
         class="w-full border-b border-gray-300 mb-8 outline-none resize-none bg-transparent text-black h-10"
       />
 
       <div class="flex justify-between items-center">
         <button
-          @click="$emit('closeModal')"
+          @click="$emit('deleteEvent')"
           class="text-red-500 text-sm tracking-wide uppercase"
           type="button"
         >
@@ -71,7 +71,7 @@
           class="text-indigo-500 text-sm tracking-wide uppercase"
           type="button"
         >
-          Edit
+          Save
         </button>
       </div>
     </div>
