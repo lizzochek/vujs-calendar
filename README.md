@@ -2,6 +2,8 @@
 
 Calendar using Vue.js created as a test task
 
+View at [GitHub Pages](https://lizzochek.github.io/vujs-calendar/)
+
 ## Functionality
 
 - Ability to add a new "event" (max 30 chars) for a user-entered day and time
