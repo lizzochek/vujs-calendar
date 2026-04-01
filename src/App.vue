@@ -6,13 +6,19 @@ import CalendarWeekView from "./components/CalendarWeekView.vue"
 import CalendarDayView from "./components/CalendarDayView.vue"
 import CalendarMonthView from "./components/CalendarMonthView.vue"
 import { useCalendarGridState } from "./composables/useCalendarGridState"
-import { DEFAULT_EVENT_COLOR, GRID_START_MINUTES, PX_PER_MINUTE, SLOT_MINUTES } from "./constants/calendarGrid"
+import {
+  DEFAULT_EVENT_COLOR,
+  GRID_START_MINUTES,
+  PX_PER_MINUTE,
+  SLOT_MINUTES,
+} from "./constants/calendarGrid"
 import "vue-simple-calendar/dist/vue-simple-calendar.css"
 import "vue-simple-calendar/dist/css/default.css"
 import "./assets/tailwind.css"
 import { createEventDate, isAllDayEvent } from "./utils/calendarHelpers"
 import { dayFromWeekOrDayGridPoint, roundToStepMinutes } from "./utils/dragDropHelpers"
 import { calendarItemStyleString } from "./utils/eventStyles"
+import { monthViewSameTimeColumnStyle, sameTimeColumnMeta } from "./utils/monthViewSameTimeColumns"
 import { validateEventForSave } from "./utils/eventValidation"
 
 const showDate = ref(new Date())
@@ -104,12 +110,26 @@ const sortedCalendarItems = computed(() => {
   })
 })
 
-const itemsForCalendarView = computed(() =>
-  sortedCalendarItems.value.map((item) => ({
-    ...item,
-    style: calendarItemStyleString(item),
-  })),
-)
+const monthViewStartingDayOfWeek = 0
+
+const itemsForCalendarView = computed(() => {
+  const list = sortedCalendarItems.value
+  const colMeta = sameTimeColumnMeta(list, monthViewStartingDayOfWeek)
+  return list.map((item) => {
+    let style = calendarItemStyleString(item)
+    const extraClasses = []
+    if (colMeta.has(item.id)) {
+      const { col, n, dayOffset } = colMeta.get(item.id)
+      style = `${style}; ${monthViewSameTimeColumnStyle(dayOffset, col, n)}`
+      extraClasses.push("month-same-time-column")
+    }
+    return {
+      ...item,
+      style,
+      classes: [...(item.classes || []), ...extraClasses],
+    }
+  })
+})
 
 const nowTick = ref(new Date())
 
@@ -138,8 +158,9 @@ function toCurrentPeriod(date) {
 }
 
 function setView(view) {
-  if (view === "agenda") return
+  if (activeView.value === view) return
   activeView.value = view
+  closeModal()
 }
 
 const currentPeriodLabel = computed(() => {
@@ -414,7 +435,6 @@ function deleteEvent() {
         >
           Day
         </button>
-        <button class="calendar-btn">Agenda</button>
       </div>
     </div>
 
@@ -467,6 +487,7 @@ function deleteEvent() {
       :show-date="showDate"
       :items="itemsForCalendarView"
       :display-period-uom="activeView"
+      :starting-day-of-week="monthViewStartingDayOfWeek"
       @drop-on-date="handleItemDrop"
       @click-item="(item, e) => openEvent(showDate, item, e)"
       @click-date="onCalendarViewClickDate"

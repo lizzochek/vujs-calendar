@@ -115,6 +115,16 @@
   margin-top: 30px;
 }
 
+.theme-default .cv-item.month-same-time-column {
+  font-size: 11px;
+  line-height: 1.25;
+  padding: 4px 6px;
+  min-height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .week-board {
   border: 1px solid #e3e8f0;
   background: #fff;
